@@ -1,0 +1,127 @@
+==================================================
+Phase 1: Compiling C Programs...
+==================================================
+Compiling false_sharing.c...
+Compiling numa_sweep.c...
+Compiling compare_numa.c...
+Compilation complete.
+
+==================================================
+Phase 2: Running Part A - Protocol Simulator
+==================================================
+State trace, first 2 iterations, adjacent layout (line A: core0 state / core1 state)
+
+MSI:
+  core0 R -> C0=S C1=I
+  core0 W -> C0=M C1=I
+  core1 R -> C0=S C1=S
+  core1 W -> C0=I C1=M
+  core0 R -> C0=S C1=S
+  core0 W -> C0=M C1=I
+  core1 R -> C0=S C1=S
+  core1 W -> C0=I C1=M
+
+MESI:
+  core0 R -> C0=E C1=I
+  core0 W -> C0=M C1=I
+  core1 R -> C0=S C1=S
+  core1 W -> C0=I C1=M
+  core0 R -> C0=S C1=S
+  core0 W -> C0=M C1=I
+  core1 R -> C0=S C1=S
+  core1 W -> C0=I C1=M
+
+MOESI:
+  core0 R -> C0=E C1=I
+  core0 W -> C0=M C1=I
+  core1 R -> C0=O C1=S
+  core1 W -> C0=I C1=M
+  core0 R -> C0=S C1=O
+  core0 W -> C0=M C1=I
+  core1 R -> C0=O C1=S
+  core1 W -> C0=I C1=M
+
+Totals for 1000 iterations
+layout    protocol bus transactions            BusRd           BusRdX          BusUpgr    invalidations        writeback              c2c      silent E->M
+adjacent  MSI                4000             2000                0             2000             1999             1999                0                0
+adjacent  MESI               3999             2000                0             1999             1999             1999                0                1
+adjacent  MOESI              3999             2000                0             1999             1999                0             3998                1
+padded    MSI                   4                2                0                2                0                0                0                0
+padded    MESI                  2                2                0                0                0                0                0                2
+padded    MOESI                 2                2                0                0                0                0                0                2
+
+==================================================
+Phase 3: Running Part B1 - False Sharing (2 Threads)
+==================================================
+Running adjacent layout (False Sharing)...
+adjacent | threads=2 | total=100000000 | time=0.0114 s
+Running padded layout (No False Sharing)...
+padded | threads=2 | total=100000000 | time=0.0088 s
+
+==================================================
+Phase 4: Running Part B2 - NUMA Comparison
+==================================================
+--> Test 1: Default Placement (Tables 1 & 2)
+Table 1: false sharing (100000000 increments in total)
+Layout   | Threads | Final Count | Correctness | Time (s)
+-----------------------------------------------------------
+adjacent |       1 |   100000000 | Correct     |   0.0171
+padded   |       1 |   100000000 | Correct     |   0.0161
+-----------------------------------------------------------
+adjacent |       2 |   100000000 | Correct     |   0.0099
+padded   |       2 |   100000000 | Correct     |   0.0080
+-----------------------------------------------------------
+adjacent |       4 |   100000000 | Correct     |   0.0095
+padded   |       4 |   100000000 | Correct     |   0.0108
+-----------------------------------------------------------
+
+Table 2: memory sweep of 512 MB (4 passes)
+Threads | Time (s)
+------------------
+      1 |   0.2000
+      2 |   0.0511
+
+--> Test 2: Local Memory Allocation (Node 0 for CPU and Memory)
+Table 1: false sharing (100000000 increments in total)
+Layout   | Threads | Final Count | Correctness | Time (s)
+-----------------------------------------------------------
+adjacent |       1 |   100000000 | Correct     |   0.0166
+padded   |       1 |   100000000 | Correct     |   0.0162
+-----------------------------------------------------------
+adjacent |       2 |   100000000 | Correct     |   0.0102
+padded   |       2 |   100000000 | Correct     |   0.0080
+-----------------------------------------------------------
+adjacent |       4 |   100000000 | Correct     |   0.0101
+padded   |       4 |   100000000 | Correct     |   0.0092
+-----------------------------------------------------------
+
+Table 2: memory sweep of 512 MB (4 passes)
+Threads | Time (s)
+------------------
+      1 |   0.0939
+      2 |   0.0490
+
+--> Test 3: Remote Memory Allocation (CPU on Node 0, Memory on Node 1)
+Table 1: false sharing (100000000 increments in total)
+Layout   | Threads | Final Count | Correctness | Time (s)
+-----------------------------------------------------------
+adjacent |       1 |   100000000 | Correct     |   0.0160
+padded   |       1 |   100000000 | Correct     |   0.0159
+-----------------------------------------------------------
+adjacent |       2 |   100000000 | Correct     |   0.0099
+padded   |       2 |   100000000 | Correct     |   0.0079
+-----------------------------------------------------------
+adjacent |       4 |   100000000 | Correct     |   0.0104
+padded   |       4 |   100000000 | Correct     |   0.0081
+-----------------------------------------------------------
+
+Table 2: memory sweep of 512 MB (4 passes)
+Threads | Time (s)
+------------------
+      1 |   0.0940
+      2 |   0.0576
+
+==================================================
+Experiment execution complete!
+Note: The lab manual recommends running each configuration three times and recording the median time for accurate results.
+==================================================
